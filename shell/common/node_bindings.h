@@ -108,10 +108,10 @@ class NodeBindings {
   // Notify embed thread to start polling after environment is loaded.
   void StartPolling();
 
-  // Gets/sets the per isolate data.
   void set_isolate_data(node::IsolateData* isolate_data) {
     isolate_data_ = isolate_data;
   }
+
   node::IsolateData* isolate_data() const { return isolate_data_; }
 
   // Gets/sets the environment to wrap uv loop.
@@ -172,7 +172,7 @@ class NodeBindings {
   // Semaphore to wait for main loop in the embed thread.
   uv_sem_t embed_sem_;
 
-  // Environment that to wrap the uv loop.
+  // Environment that wraps the uv loop.
   raw_ptr<node::Environment> uv_env_ = nullptr;
 
   // Isolate data used in creating the environment
