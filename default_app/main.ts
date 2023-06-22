@@ -32,6 +32,7 @@ const option: DefaultAppOptions = {
 
 let nextArgIsRequire = false;
 
+/* eslint-disable unicorn/prefer-switch */
 for (const arg of argv) {
   if (nextArgIsRequire) {
     option.modules.push(arg);
