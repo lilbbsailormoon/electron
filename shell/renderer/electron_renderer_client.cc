@@ -18,7 +18,6 @@
 #include "shell/renderer/electron_render_frame_observer.h"
 #include "shell/renderer/web_worker_observer.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
-#include "third_party/blink/public/web/blink.h"
 #include "third_party/blink/public/web/web_document.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"  // nogncheck
@@ -90,9 +89,10 @@ void ElectronRendererClient::DidCreateScriptContext(
   CHECK(!initialized.IsNothing() && initialized.FromJust());
 
   // If DidCreateScriptContext is called and we've already created a Node.js
-  // Environment, then we're in the same process with a new V8::Context. We
+  // Environment, then we're in the same process with a new V8::Context. If
+  // render_frame is the main frame, then we should replace it. Otherwise, we
   // should assign the existing Environment to the new V8::Context.
-  if (env_) {
+  if (env_ && !render_frame->IsMainFrame()) {
     env_->AssignToContext(context, nullptr, node::ContextInfo(""));
     return;
   }
@@ -201,7 +201,6 @@ node::Environment* ElectronRendererClient::GetEnvironment(
     content::RenderFrame* render_frame) const {
   if (!base::Contains(injected_frames_, render_frame))
     return nullptr;
-
   return env_;
 }
 
