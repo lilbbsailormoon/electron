@@ -31,30 +31,7 @@ ElectronRendererClient::ElectronRendererClient()
       electron_bindings_(
           std::make_unique<ElectronBindings>(node_bindings_->uv_loop())) {}
 
-ElectronRendererClient::~ElectronRendererClient() {
-  if (!env_)
-    return;
-
-  // Destroying the node environment will also run the uv loop,
-  // Node.js expects `kExplicit` microtasks policy and will run microtasks
-  // checkpoints after every call into JavaScript. Since we use a different
-  // policy in the renderer - switch to `kExplicit` and then drop back to the
-  // previous policy value.
-  v8::Local<v8::Context> context = env_->context();
-  v8::MicrotaskQueue* microtask_queue = context->GetMicrotaskQueue();
-  auto old_policy = microtask_queue->microtasks_policy();
-  DCHECK_EQ(microtask_queue->GetMicrotasksScopeDepth(), 0);
-  microtask_queue->set_microtasks_policy(v8::MicrotasksPolicy::kExplicit);
-
-  node::FreeEnvironment(env_);
-  node::FreeIsolateData(node_bindings_->isolate_data());
-  node_bindings_->set_isolate_data(nullptr);
-
-  microtask_queue->set_microtasks_policy(old_policy);
-
-  // ElectronBindings is tracking node environments.
-  electron_bindings_->EnvironmentDestroyed(env_);
-}
+ElectronRendererClient::~ElectronRendererClient() = default;
 
 void ElectronRendererClient::RenderFrameCreated(
     content::RenderFrame* render_frame) {
@@ -69,7 +46,7 @@ void ElectronRendererClient::RunScriptsAtDocumentStart(
   // Inform the document start phase.
   auto* isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
-  node::Environment* env = GetEnvironment(render_frame, isolate);
+  node::Environment* env = GetEnvironment(render_frame);
   if (env)
     gin_helper::EmitEvent(isolate, env->process_object(), "document-start");
 }
@@ -81,7 +58,7 @@ void ElectronRendererClient::RunScriptsAtDocumentEnd(
   // Inform the document end phase.
   auto* isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
-  node::Environment* env = GetEnvironment(render_frame, isolate);
+  node::Environment* env = GetEnvironment(render_frame);
   if (env)
     gin_helper::EmitEvent(isolate, env->process_object(), "document-end");
 }
@@ -137,7 +114,7 @@ void ElectronRendererClient::DidCreateScriptContext(
   // Load the Environment.
   node_bindings_->LoadEnvironment(env_);
 
-  // Make uv loop being wrapped by window context.
+  // Wrap the uv loop with the window context.
   node_bindings_->set_uv_env(env_);
 
   // Give the node loop a run to make sure everything is ready.
@@ -147,13 +124,39 @@ void ElectronRendererClient::DidCreateScriptContext(
 void ElectronRendererClient::WillReleaseScriptContext(
     v8::Handle<v8::Context> context,
     content::RenderFrame* render_frame) {
-  auto* env = node::Environment::GetCurrent(context);
-  if (injected_frames_.erase(render_frame) == 0 || !env)
+  if (injected_frames_.erase(render_frame) == 0 || !env_)
     return;
 
   gin_helper::EmitEvent(env_->isolate(), env_->process_object(), "exit");
 
-  env->UntrackContext(context);
+  env_->UntrackContext(context);
+
+  // If the main frame script context is being released then
+  // destroy the node environment so the new navigation can create
+  // new environment associated with the main thread.
+  if (render_frame->IsMainFrame()) {
+    node_bindings_->set_uv_env(nullptr);
+    // Destroying the node environment will also run the uv loop,
+    // Node.js expects `kExplicit` microtasks policy and will run microtasks
+    // checkpoints after every call into JavaScript. Since we use a different
+    // policy in the renderer - switch to `kExplicit` and then drop back to the
+    // previous policy value.
+    v8::MicrotaskQueue* microtask_queue = context->GetMicrotaskQueue();
+    auto old_policy = microtask_queue->microtasks_policy();
+    DCHECK_EQ(microtask_queue->GetMicrotasksScopeDepth(), 0);
+    microtask_queue->set_microtasks_policy(v8::MicrotasksPolicy::kExplicit);
+
+    // ElectronBindings is tracking node environments.
+    electron_bindings_->EnvironmentDestroyed(env_);
+
+    node::FreeEnvironment(env_);
+    env_ = nullptr;
+
+    node::FreeIsolateData(node_bindings_->isolate_data());
+    node_bindings_->set_isolate_data(nullptr);
+
+    microtask_queue->set_microtasks_policy(old_policy);
+  }
 }
 
 void ElectronRendererClient::WorkerScriptReadyForEvaluationOnWorkerThread(
@@ -195,13 +198,11 @@ void ElectronRendererClient::WillDestroyWorkerContextOnWorkerThread(
 }
 
 node::Environment* ElectronRendererClient::GetEnvironment(
-    content::RenderFrame* render_frame,
-    v8::Isolate* isolate) const {
+    content::RenderFrame* render_frame) const {
   if (!base::Contains(injected_frames_, render_frame))
     return nullptr;
 
-  auto* env = node::Environment::GetCurrent(isolate);
-  return (env && env == env_) ? env : nullptr;
+  return env_;
 }
 
 }  // namespace electron

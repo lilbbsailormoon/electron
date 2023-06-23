@@ -44,8 +44,7 @@ class ElectronRendererClient : public RendererClientBase {
   void WillDestroyWorkerContextOnWorkerThread(
       v8::Local<v8::Context> context) override;
 
-  node::Environment* GetEnvironment(content::RenderFrame* frame,
-                                    v8::Isolate* isolate) const;
+  node::Environment* GetEnvironment(content::RenderFrame* frame) const;
 
   // Whether the node integration has been initialized.
   bool node_integration_initialized_ = false;
@@ -55,10 +54,8 @@ class ElectronRendererClient : public RendererClientBase {
 
   // The node::Environment::GetCurrent API does not return nullptr when it
   // is called for a context without node::Environment, so we have to keep
-  // a book of the environments created.
-  node::Environment* env_;
-
-  std::set<v8::Handle<v8::Context>> contexts_;
+  // a book of the environment created.
+  raw_ptr<node::Environment> env_ = nullptr;
 
   // Getting main script context from web frame would lazily initializes
   // its script context. Doing so in a web page without scripts would trigger
