@@ -13,7 +13,6 @@
     "semi": ["error", "always"],
     "no-var": "error",
     "no-unused-vars": "off",
-    "no-global-assign": "off",
     "guard-for-in": "error",
     "@typescript-eslint/no-unused-vars": ["error", {
       "vars": "all",
@@ -24,7 +23,6 @@
       "destructuring": "all"
     }],
     "standard/no-callback-literal": "off",
-    "node/no-deprecated-api": "off",
     "unicorn/prefer-switch": "error"
   },
   "parserOptions": {
@@ -32,12 +30,6 @@
     "sourceType": "module"
   },
   "overrides": [
-    {
-      "files": "*.js",
-      "rules": {
-        "@typescript-eslint/no-unused-vars": "off"
-      }
-    },
     {
       "files": "*.ts",
       "rules": {
