@@ -8,7 +8,7 @@ This reverts commit 392e5f43aae8d225a118145cbc5f5bb104cbe541.
 Can be removed once https://github.com/electron/electron/issues/38937 is resolved.
 
 diff --git a/chrome/app/chrome_command_ids.h b/chrome/app/chrome_command_ids.h
-index 15f4aac24744228c0e74ec521c18eb6ab5f59c5b..b9a71c9063d8ee573424a9161cc127af169944a9 100644
+index c06b25b4579be6e2e9ca5e4fef2638be07c29821..6136ba85827fc09b217c40d92dd27e9cf255876f 100644
 --- a/chrome/app/chrome_command_ids.h
 +++ b/chrome/app/chrome_command_ids.h
 @@ -59,6 +59,7 @@
@@ -62,10 +62,10 @@ index 28412d00adf463a1453aecc82ca1179f0521822d..a3bd2e0cae1d341adfe9dd498886ae59
    bool PreHandleMSG(UINT message,
                      WPARAM w_param,
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 6920106ba91e0d1c0c1706a28b4ce5a14b5f3aed..306affc1d9573acd475d79f30a3583f0e716f33e 100644
+index fa3d83da81fcd944c591d52c8cf40b45c3994a00..0ebddd4d06de3c64192876b997502b378275b9b4 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -927,8 +927,7 @@ BrowserView::BrowserView(std::unique_ptr<Browser> browser)
+@@ -934,8 +934,7 @@ BrowserView::BrowserView(std::unique_ptr<Browser> browser)
    infobar_container_ =
        AddChildView(std::make_unique<InfoBarContainerView>(this));
  
@@ -75,7 +75,7 @@ index 6920106ba91e0d1c0c1706a28b4ce5a14b5f3aed..306affc1d9573acd475d79f30a3583f0
  
    // Create do-nothing view for the sake of controlling the z-order of the find
    // bar widget.
-@@ -1049,6 +1048,11 @@ void BrowserView::SetDisableRevealerDelayForTesting(bool disable) {
+@@ -1056,6 +1055,11 @@ void BrowserView::SetDisableRevealerDelayForTesting(bool disable) {
    g_disable_revealer_delay_for_testing = disable;
  }
  
@@ -87,7 +87,7 @@ index 6920106ba91e0d1c0c1706a28b4ce5a14b5f3aed..306affc1d9573acd475d79f30a3583f0
  gfx::Rect BrowserView::GetFindBarBoundingBox() const {
    gfx::Rect contents_bounds = contents_container_->ConvertRectToWidget(
        contents_container_->GetLocalBounds());
-@@ -3397,6 +3401,11 @@ ui::ImageModel BrowserView::GetWindowIcon() {
+@@ -3458,6 +3462,11 @@ ui::ImageModel BrowserView::GetWindowIcon() {
  }
  
  bool BrowserView::ExecuteWindowsCommand(int command_id) {
@@ -100,10 +100,10 @@ index 6920106ba91e0d1c0c1706a28b4ce5a14b5f3aed..306affc1d9573acd475d79f30a3583f0
    // knows how to handle.
    int command_id_from_app_command = GetCommandIDForAppCommandID(command_id);
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index d80a6df7380e5aec6ecba092315c905a09d7e2cc..bde91001c6f75f9918b9063eb0eaff5d56ea06c1 100644
+index e149a732b5d0652c87c7a9dd24119561ffa2401f..6dc261f1e3ffc49675c30d8c83e79cbd74eb7df7 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
-@@ -164,6 +164,12 @@ class BrowserView : public BrowserWindow,
+@@ -165,6 +165,12 @@ class BrowserView : public BrowserWindow,
  
    void SetDownloadShelfForTest(DownloadShelf* download_shelf);
  
@@ -158,7 +158,7 @@ index 8f69eab1fc2b9c81d14f7b547b4f434c722b98aa..8acaa2816a03f41b19ec364eea265868
    // Add the submenu for move to desks.
    void AppendMoveToDesksMenu(ui::SimpleMenuModel* model);
 diff --git a/chrome/common/chrome_switches.cc b/chrome/common/chrome_switches.cc
-index b23fbffea35f1f9936b998bbe501c9e5acdecf6a..4d635764d6c5db0b493aba9d3b2add095fc9ebe4 100644
+index 4337ef634ac6732edc311f6d1a8e2d435b232afa..befeb1ea72285c6d723981d3a71ff5936f64f984 100644
 --- a/chrome/common/chrome_switches.cc
 +++ b/chrome/common/chrome_switches.cc
 @@ -143,6 +143,10 @@ const char kCredits[] = "credits";
@@ -173,7 +173,7 @@ index b23fbffea35f1f9936b998bbe501c9e5acdecf6a..4d635764d6c5db0b493aba9d3b2add09
  // apps.
  const char kDebugPackedApps[] = "debug-packed-apps";
 diff --git a/chrome/common/chrome_switches.h b/chrome/common/chrome_switches.h
-index be1f7824d85a6705aa8c220578ac62f0d1a4114e..7ce3dd85d1cab1fbd5aff6104ea0d1b864ebcb0c 100644
+index 9da06a2cda521877232b0e1e1ee560b8ee9d77c5..abcdb45ddf5f47ebd76a0d11d98d1f65a5b8126a 100644
 --- a/chrome/common/chrome_switches.h
 +++ b/chrome/common/chrome_switches.h
 @@ -61,6 +61,7 @@ extern const char kCrashOnHangThreads[];
@@ -185,7 +185,7 @@ index be1f7824d85a6705aa8c220578ac62f0d1a4114e..7ce3dd85d1cab1fbd5aff6104ea0d1b8
  extern const char kDevToolsFlags[];
  extern const char kDiagnostics[];
 diff --git a/ui/views/widget/desktop_aura/desktop_native_widget_aura_unittest.cc b/ui/views/widget/desktop_aura/desktop_native_widget_aura_unittest.cc
-index d0dc2b4993891837c6ac76e095833126db461032..ba1bcbc63475b7151e2335c9237124ca8ca31dc7 100644
+index 7ee074bba690e7c1ae07e65bd79d77e127acc778..0b9d5cacec865b60fc8878c60f029ed420d117d9 100644
 --- a/ui/views/widget/desktop_aura/desktop_native_widget_aura_unittest.cc
 +++ b/ui/views/widget/desktop_aura/desktop_native_widget_aura_unittest.cc
 @@ -136,6 +136,30 @@ TEST_F(DesktopNativeWidgetAuraTest, WidgetNotVisibleOnlyWindowTreeHostShown) {
@@ -289,10 +289,10 @@ index 9aced70287c3ac877310457c1aad3b2544a85800..35f435d3d4d5eda44b69e5e66ec94805
    widget()->dragged_view();
  }
 diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
-index 575877b4fb0929d0cdd22af399f7078fcd713584..90dd6487fdf438a61672a81f08b545742045944a 100644
+index a87ccfe3ed5a4b4329775968981c598912f4184a..bed3b9da1bda0f7c9076cc3eb67cf3bd076addb3 100644
 --- a/ui/views/win/hwnd_message_handler.cc
 +++ b/ui/views/win/hwnd_message_handler.cc
-@@ -1741,6 +1741,20 @@ void HWNDMessageHandler::ResetWindowRegion(bool force, bool redraw) {
+@@ -1754,6 +1754,20 @@ void HWNDMessageHandler::ResetWindowRegion(bool force, bool redraw) {
    }
  }
  
@@ -313,7 +313,7 @@ index 575877b4fb0929d0cdd22af399f7078fcd713584..90dd6487fdf438a61672a81f08b54574
  LRESULT HWNDMessageHandler::DefWindowProcWithRedrawLock(UINT message,
                                                          WPARAM w_param,
                                                          LPARAM l_param) {
-@@ -3607,10 +3621,34 @@ bool HWNDMessageHandler::IsSynthesizedMouseMessage(unsigned int message,
+@@ -3624,10 +3638,34 @@ bool HWNDMessageHandler::IsSynthesizedMouseMessage(unsigned int message,
  }
  
  void HWNDMessageHandler::PerformDwmTransition() {
