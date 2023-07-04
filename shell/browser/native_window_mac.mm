@@ -487,8 +487,11 @@ void NativeWindowMac::Hide() {
 }
 
 bool NativeWindowMac::IsVisible() {
-  bool occluded = [window_ occlusionState] == NSWindowOcclusionStateVisible;
-  return [window_ isVisible] && !occluded && !IsMinimized();
+  // If set, at least part of the window is visible; if not set, the entire
+  // window is occluded.
+  bool occluded = !(window_.occlusionState & NSWindowOcclusionStateVisible);
+
+  return window_.isVisible && !occluded && !IsMinimized();
 }
 
 bool NativeWindowMac::IsEnabled() {

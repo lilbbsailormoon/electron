@@ -1198,6 +1198,42 @@ describe('BrowserWindow module', () => {
           await isClosed3;
         }
       });
+
+      ifit(process.platform === 'darwin')('is not visible when occluded', async () => {
+        const w1 = new BrowserWindow({ show: false, width: 200, height: 200 });
+        const w2 = new BrowserWindow({ show: false });
+
+        const w1Shown = once(w1, 'show');
+        w1.show();
+        await w1Shown;
+
+        expect(w1.isVisible()).to.equal(true);
+        expect(w2.isVisible()).to.equal(false);
+
+        const w2Shown = once(w2, 'show');
+        const w2Focused = once(w2, 'focus');
+
+        w2.show();
+        await w2Shown;
+
+        w2.focus();
+        await w2Focused;
+
+        await setTimeout(1000);
+
+        expect(w2.isFocused()).to.equal(true);
+        expect(w1.isVisible()).to.equal(false);
+        expect(w2.isVisible()).to.equal(true);
+
+        {
+          const w1Closed = once(w1, 'closed');
+          const w2Closed = once(w2, 'closed');
+          w1.destroy();
+          w2.destroy();
+          await w1Closed;
+          await w2Closed;
+        }
+      });
     });
 
     // TODO(RaisinTen): Make this work on Windows too.
